@@ -1,0 +1,40 @@
+{
+    "cpp": {
+        "source_name": "Main.cpp",
+        "output_name": "Main",
+        "compile": {
+            "command": "g++ {source_path} -o {output_path} -DONLINE_JUDGE -fno-asm -O2",
+            "max_cpu_time": 3000,
+            "max_real_time": 5000,
+            "max_memory": 134217728
+        },
+        "execute": "{output_path}"
+    },
+    "java": {
+        "source_name": "Main.java",
+        "output_name": "Main",
+        "compile": {
+            "command": "javac {source_path} -d {output_dir} -encoding UTF8",
+            "max_cpu_time": 3000,
+            "max_real_time": 5000,
+            "max_memory": -1
+        },
+        "execute": "java -cp {output_path} -XX:MaxRAM={max_memory}k -Djava.security.manager -Dfile.encoding=UTF-8 -Djava.awt.headless=true Main"
+    },
+    "python2": {
+        "source_name": "Main.py",
+        "output_name": "Main.py",
+        "compile": {
+            "command": null
+        },
+        "execute": "python2 {source_path}"
+    },
+    "python3": {
+        "source_name": "Main.py",
+        "output_name": "Main.py",
+        "compile": {
+            "command": null
+        },
+        "execute": "python3 {source_path}"
+    }
+}
