@@ -9,12 +9,6 @@ from sqlalchemy_utils import (
 
 def create_database():
     url = make_url(current_app.config["SQLALCHEMY_DATABASE_URI"])
-    if url.drivername == "postgres":
-        url.drivername = "postgresql"
-
-    if url.drivername.startswith("mysql"):
-        url.query["charset"] = "utf8mb4"
-
     # Creates database if the database database does not exist
     if not database_exists_util(url):
         if url.drivername.startswith("mysql"):

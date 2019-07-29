@@ -35,6 +35,9 @@ def add_problem():
                   'max_real_time', 'max_stack', 'max_process_number']:
             if i not in r['limits'].keys():
                 raise Exception()
+        for i in r['cases']:
+            if type(i['input']) != str or type(i['output']) != str:
+                raise Exception()
     except Exception:
         return 403, 'wrong parameters', None
 

@@ -1,14 +1,14 @@
-import base64
 import json
 import os
 import uuid
 
-import _judger
 from flask import Blueprint, request
 
 import config
 import utils
+from constants import *
 from db import db
+from worker import Worker, CompileErrorException
 
 judge = Blueprint('judge', __name__, url_prefix='/judge')
 
@@ -29,28 +29,53 @@ class Submissions(db.Model):
         self.uuid = uuid.uuid4().hex
         work_dir = os.path.join(config.JUDGE_BASEDIR, self.uuid)
         os.mkdir(work_dir)
-        self.compile(work_dir)
-        result = self.judge(work_dir)
+
+        self.worker = Worker(work_dir, code, lang, problem_id)
+        comp = self.compile()
+        if not comp['result']:
+            result = {
+                'ret_code': RESULT_COMPILE_ERROR,
+                'message': 'Compile Error',
+                'details': {
+                    'error': comp['message']
+                }
+            }
+        else:
+            result = self.judge()
         self.result = json.dumps(result)
 
-    def compile(self, workdir):
-        return {}
+    def compile(self):
+        result = True
+        message = ''
+        source_path, output_path = '', ''
+        try:
+            source_path, output_path = self.worker.compile()
+        except CompileErrorException as e:
+            result = False
+            message = e.message
+        return {
+            'result': result,
+            'message': message,
+            'source': source_path,
+            'output': output_path,
+        }
 
-    def judge(self, workdir):
-        return {'test': True}
+    def judge(self):
+        r, c = self.worker.execute()
+        return self.build_result(r, c)
 
     @staticmethod
-    def compare_output(got_output, output):
-        output = output.strip(' \n')
-        got_output = got_output.strip(' \n')
-        result = None
-        if output != got_output:
-            if output.replace('\n', '').replace(' ', '') \
-                    == got_output.replace('\n', '').replace(' ', ''):
-                result = -2  # Presentation Error
-            else:
-                result = _judger.RESULT_WRONG_ANSWER
-        return result
+    def build_result(result, case_cnt):
+        if len(result) >= case_cnt:  # bigger than?
+            return {
+                'result': RESULT_SUCCESS,
+                'message': 'Accepted'
+            }
+        else:
+            return {
+                'result': result[-1]['result'],
+                'message': result_msg[result[-1]['result']] + ' on case ' + str(len(result))
+            }
 
 
 @judge.route('/', methods=['POST'])
@@ -68,21 +93,7 @@ def submit():
         r['lang'],
         r['code'],
     )
+    submission.worker.destroy()
     db.session.add(submission)
     db.session.commit()
     return 200, 'success', json.loads(submission.result)
-
-
-RESULT_PRESENTATION_ERROR = -2
-RESULT_COMPILE_ERROR = 6
-result_msg = {
-    _judger.RESULT_SUCCESS: 'Accepted',
-    _judger.RESULT_RUNTIME_ERROR: 'Runtime Error',
-    _judger.RESULT_WRONG_ANSWER: 'Wrong Answer',
-    _judger.RESULT_CPU_TIME_LIMIT_EXCEEDED: 'Time Limit Exceeded',
-    _judger.RESULT_REAL_TIME_LIMIT_EXCEEDED: 'Time Limit Exceeded',
-    _judger.RESULT_SYSTEM_ERROR: 'System Error',
-    _judger.RESULT_MEMORY_LIMIT_EXCEEDED: 'Memory Limit Exceeded',
-    RESULT_PRESENTATION_ERROR: 'Presentation Error',
-    RESULT_COMPILE_ERROR: 'Compile Error'
-}

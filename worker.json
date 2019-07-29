@@ -3,7 +3,7 @@
         "source_name": "Main.cpp",
         "output_name": "Main",
         "compile": {
-            "command": "g++ {source_path} -o {output_path} -DONLINE_JUDGE -fno-asm -O2",
+            "command": "/usr/bin/g++ {source_path} -o {output_path} -DONLINE_JUDGE -fno-asm -O2",
             "max_cpu_time": 3000,
             "max_real_time": 5000,
             "max_memory": 134217728
@@ -35,6 +35,6 @@
         "compile": {
             "command": null
         },
-        "execute": "python3 {source_path}"
+        "execute": "/usr/local/bin/python3 {source_path}"
     }
 }

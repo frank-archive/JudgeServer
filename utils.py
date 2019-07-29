@@ -12,7 +12,7 @@ def api_call(func):
 
         result = {}
         try:
-            if 'X-Judge-Server-Token' not in request.headers.keys() or\
+            if 'X-Judge-Server-Token' not in request.headers.keys() or \
                     request.headers['X-Judge-Server-Token'] != config.token:
                 result = {
                     'status': 403,
@@ -25,8 +25,9 @@ def api_call(func):
             result = {
                 'status': 500,
                 'message': 'Uncaught Error',
-                'content': str(e)
+                'content': str(type(e)) + str(e)
             }
         finally:
             return json.dumps(result), result['status'], {'Content-Type': 'application/json;'}
+
     return _api_response
