@@ -1,0 +1,36 @@
+# for debugging purposes only
+version: '3.5'
+
+services:
+  judger:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=mysql+pymysql://root:judge@db/judge?charset=utf8mb4
+      - JUDGE_BASEDIR=/opt/base
+      - JUDGE_TOKEN=set_token
+    depends_on:
+      - db
+    networks:
+      default:
+      internal:
+
+  db:
+    image: mariadb:10.4
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=judge
+      - MYSQL_DATABASE=judge
+    volumes:
+      - .data/mysql:/var/lib/mysql
+    networks:
+      internal:
+      default:
+    # This command is required to set important mariadb defaults
+    command: [mysqld, --character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci, --wait_timeout=28800, --log-warnings=0]
+
+networks:
+  default:
+  internal:
+    internal: true
