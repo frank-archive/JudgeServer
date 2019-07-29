@@ -8,7 +8,7 @@
 支持C++, Java, Python2/3 四种语言的评测  
 评测参数在`worker.json`中配置。  
 以C++为例，配置项分别为：
-```json
+```jsonc
 "cpp": { //语言名，即请求/judge时的"lang"参数
     "source_name": "Main.cpp", // 将代码写入此文件。主要用于规定后缀名
     "output_name": "Main", // 编译输出文件名(如果是解释型语言则可选)
