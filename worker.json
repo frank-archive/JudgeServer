@@ -8,18 +8,29 @@
             "max_real_time": 5000,
             "max_memory": 134217728
         },
-        "execute": "{output_path}"
+        "execute": {
+            "command": "{output_path}",
+            "weight": {}
+        }
     },
     "java": {
         "source_name": "Main.java",
         "output_name": "Main",
         "compile": {
-            "command": "javac {source_path} -d {output_dir} -encoding UTF8",
+            "command": "/usr/lib/jvm/java-1.8-openjdk/bin/javac {source_path} -d {output_dir} -encoding UTF8",
             "max_cpu_time": 3000,
             "max_real_time": 5000,
             "max_memory": -1
         },
-        "execute": "java -cp {output_path} -XX:MaxRAM={max_memory}k -Djava.security.manager -Dfile.encoding=UTF-8 -Djava.awt.headless=true Main"
+        "execute": {
+            "command": "/usr/lib/jvm/java-1.8-openjdk/bin/java -cp {output_dir} -XX:MaxRAM={max_memory}k -Djava.security.manager -Dfile.encoding=UTF-8 -Djava.awt.headless=true Main",
+            "weight": {
+                "max_cpu_time": 2,
+                "max_real_time": 2,
+                "max_memory": -1,
+                "max_stack": -1
+            }
+        }
     },
     "python2": {
         "source_name": "Main.py",
@@ -27,7 +38,14 @@
         "compile": {
             "command": null
         },
-        "execute": "python2 {source_path}"
+        "execute": {
+            "command": "/usr/bin/python2 {source_path}",
+            "weight": {
+                "max_memory": 10,
+                "max_stack": 10,
+                "max_process_number": 5
+            }
+        }
     },
     "python3": {
         "source_name": "Main.py",
@@ -35,6 +53,13 @@
         "compile": {
             "command": null
         },
-        "execute": "/usr/local/bin/python3 {source_path}"
+        "execute": {
+            "command": "/usr/bin/python3 {source_path}",
+            "weight": {
+                "max_memory": 10,
+                "max_stack": 10,
+                "max_process_number": 5
+            }
+        }
     }
 }

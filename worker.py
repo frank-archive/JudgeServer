@@ -39,18 +39,22 @@ class Worker:
         """
         :return: code_path, output_path
         """
-        self.source_path = os.path.join(self.work_dir, self.config['source_name'])
-        self.output_path = os.path.join(self.work_dir, self.config['output_name'])
+        self.source_path = os.path.join(
+            self.work_dir, self.config['source_name'])
+        self.output_path = os.path.join(
+            self.work_dir, self.config['output_name'])
         compile_output_path = os.path.join(self.work_dir, 'compiler.out')
-        if self.config['compile'] is None:
+
+        with open(self.source_path, 'w') as f:
+            f.write(self.code)
+
+        if self.config['compile']['command'] is None:
             return self.source_path, self.source_path
         command = self.config['compile']['command'].format(
             source_path=self.source_path,
             output_path=self.output_path,
             output_dir=self.work_dir
         ).split(' ')
-        with open(self.source_path, 'w') as f:
-            f.write(self.code)
 
         res = _judger.run(
             max_cpu_time=self.config['compile']["max_cpu_time"],
@@ -85,11 +89,20 @@ class Worker:
         problem = Problems.query.filter_by(id=self.prob_id).first()
         cases = json.loads(problem.cases)
         limits = json.loads(problem.limits)
-        command = self.config['execute'].format(
+        command = self.config['execute']['command'].format(
             source_path=self.source_path,
             output_path=self.output_path,
-            max_memory=limits["max_memory"],
+            output_dir=self.work_dir,
+            max_memory=limits["max_memory"]//1024,
         ).split(' ')
+        weight = self.config['execute']['weight']
+        assert (type(weight) == dict)
+        for key in limits.keys():
+            if key in weight.keys() and type(weight[key]) == int:
+                if weight[key] < 0:
+                    limits[key] = -1
+                else:
+                    limits[key] *= weight[key]
         res = []
         for i in range(problem.case_cnt):
             with open(os.path.join(self.work_dir, 'input'), 'w') as f:
@@ -97,7 +110,7 @@ class Worker:
             with open(os.path.join(self.work_dir, 'output'), 'w') as f:
                 f.write(cases[i]['output'])
             res.append(_judger.run(
-                max_cpu_time=limits['max_cpu_time'],
+                max_cpu_time=limits["max_cpu_time"],
                 max_real_time=limits["max_real_time"],
                 max_memory=limits["max_memory"],
                 max_stack=limits["max_stack"],
@@ -108,14 +121,15 @@ class Worker:
                 output_path=os.path.join(self.work_dir, 'program_output'),
                 error_path=os.path.join(self.work_dir, 'program_error_output'),
                 args=command[1::],
-                env=[],
+                env=["PYTHONIOENCODING=UTF-8"],
                 seccomp_rule_name=None,
                 log_path=_conf.JUDGE_LOG,
                 uid=0, gid=0
             ))
             if res[-1]['result'] == RESULT_SUCCESS:
                 with open(os.path.join(self.work_dir, 'program_output'), 'r') as f:
-                    res[-1]['result'] = self.compare_output(f.read(), cases[i]['output'])
+                    res[-1]['result'] = self.compare_output(
+                        f.read(), cases[i]['output'])
             if res[-1]['result'] != RESULT_SUCCESS:
                 break
         return res, problem.case_cnt
