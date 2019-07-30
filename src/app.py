@@ -1,7 +1,6 @@
 from flask import Flask
 
-import config
-import utils
+import config, utils
 from judge import judge
 from problem import problem
 

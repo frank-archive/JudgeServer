@@ -4,8 +4,7 @@ import uuid
 
 from flask import Blueprint, request
 
-import config
-import utils
+import config, utils
 from constants import *
 from db import db
 from worker import Worker, CompileErrorException
