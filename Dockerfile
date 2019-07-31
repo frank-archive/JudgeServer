@@ -9,7 +9,7 @@ RUN apk update && \
 COPY requirements.txt /opt/
 RUN pip3 install -r /opt/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
-RUN git clone https://github.com/frankli0324/Judger /opt/libjudger --depth=1
+RUN git clone https://github.com/QingdaoU/Judger /opt/libjudger --depth=1
 WORKDIR /opt/libjudger
 RUN cmake .
 RUN make; make install
