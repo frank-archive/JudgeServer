@@ -99,7 +99,7 @@ class Worker:
         assert (type(weight) == dict)
         for key in limits.keys():
             if key in weight.keys() and type(weight[key]) == int:
-                if weight[key] < 0:
+                if weight[key] < 0 or limits[key] == -1:
                     limits[key] = -1
                 else:
                     limits[key] *= weight[key]
