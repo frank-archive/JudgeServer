@@ -33,7 +33,7 @@ class Submissions(db.Model):
         comp = self.compile()
         if not comp['result']:
             result = {
-                'ret_code': RESULT_COMPILE_ERROR,
+                'result': RESULT_COMPILE_ERROR,
                 'message': 'Compile Error',
                 'details': {
                     'error': comp['message']
