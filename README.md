@@ -49,7 +49,10 @@
 ## 部署
 
 ```bash
-docker run -p {port}:5000 frankli0324/judge_server
+docker run -p {port}:5000 frankli0324/judge_server \
+    --env JUDGE_BASEDIR=/opt/judger \
+    --env JUDGE_TOKEN=your_token \
+    --env DATABASE_URL=mysql+pymysql://username:password@$DB_URL/judge
 ```
 
 与魔改CTFd一同通过docker-compose启动:
@@ -66,12 +69,14 @@ services:
     environment:
       - JUDGE_BASEDIR=/opt/judger
       - JUDGE_TOKEN=your_token
-      - DATABASE_URL=mysql+pymysql://username:password@localhost/judge
+      - DATABASE_URL=mysql+pymysql://username:password@db/judge
+  db: 
+    image: mariadb
+    ...
 ```
 
 ## dev
 
 ```bash
-docker build .
-...
+docker-compose up
 ```
