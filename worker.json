@@ -39,7 +39,7 @@
             "command": null
         },
         "execute": {
-            "command": "/usr/bin/python2 {source_path}",
+            "command": "/opt/pyenv2/bin/python2 {source_path}",
             "weight": {
                 "max_memory": 10,
                 "max_stack": 10,
@@ -54,7 +54,7 @@
             "command": null
         },
         "execute": {
-            "command": "/usr/bin/python3 {source_path}",
+            "command": "/opt/pyenv3/bin/python3 {source_path}",
             "weight": {
                 "max_memory": 10,
                 "max_stack": 10,

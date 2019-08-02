@@ -6,3 +6,4 @@ SQLAlchemy-Utils
 PyMySQL
 gunicorn
 gevent
+virtualenv

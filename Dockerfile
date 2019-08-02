@@ -9,6 +9,9 @@ RUN apk update && \
 COPY requirements.txt /opt/
 RUN pip3 install -r /opt/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
+RUN virtualenv /opt/pyenv2 --python=/usr/bin/python2 --no-setuptools --no-pip --no-wheel
+RUN virtualenv /opt/pyenv3 --python=/usr/bin/python3 --no-setuptools --no-pip --no-wheel
+
 RUN git clone https://github.com/QingdaoU/Judger /opt/libjudger --depth=1
 WORKDIR /opt/libjudger
 RUN cmake .
