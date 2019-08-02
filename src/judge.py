@@ -45,6 +45,7 @@ class Submissions(db.Model):
             }
         else:
             result = self.judge()
+        self.return_res = result
         self.worker.destroy()
 
     def compile(self):
@@ -101,4 +102,4 @@ def submit():
     )
     db.session.add(submission)
     db.session.commit()
-    return 200, 'success', json.loads(submission.result)
+    return 200, 'success', json.loads(submission.return_res)
