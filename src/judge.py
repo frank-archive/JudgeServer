@@ -68,6 +68,7 @@ class Submissions(db.Model):
 
     def judge(self):
         r, c = self.worker.execute()
+        log.info(f'Result of the last judge case for Submission {self.uuid}:\n{r[-1]}')
         return self.build_result(r, c)
 
     @staticmethod
