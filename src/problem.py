@@ -13,7 +13,7 @@ class Problems(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     limits = db.Column(db.Text)
     case_cnt = db.Column(db.Integer)
-    cases = db.Column(db.Text)
+    cases = db.Column(db.Text(16777216))
 
     def __init__(self, limits: dict, cases: list):
         self.limits = json.dumps(limits)
