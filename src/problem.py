@@ -75,14 +75,14 @@ def update(prob_id, column):
             check_cases_fmt(r)
         except Exception:
             return 403, 'wrong parameters', None
-        prob.cases = r
+        prob.cases = json.dumps(r)
         prob.case_cnt = len(r)
     else:
         try:
             check_limits_fmt(r)
         except Exception:
             return 403, 'wrong parameters', None
-        prob.limits = r
+        prob.limits = json.dumps(r)
     db.session.add(prob)
     db.session.commit()
     return 200, 'success', None
