@@ -45,8 +45,6 @@ class Submissions(db.Model):
             }
         else:
             result = self.judge()
-        self.result = json.dumps(result)
-        log.info(f'Final Result for Submission {self.uuid}:\n{self.result}')
         self.worker.destroy()
 
     def compile(self):
@@ -68,6 +66,7 @@ class Submissions(db.Model):
 
     def judge(self):
         r, c = self.worker.execute()
+        self.result = json.dumps(r)
         log.info(f'Result of the last judge case for Submission {self.uuid}:\n{r[-1]}')
         return self.build_result(r, c)
 
