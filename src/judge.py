@@ -1,6 +1,8 @@
 import json
 import os
 import uuid
+import logging
+log = logging.getLogger('judge')
 
 from flask import Blueprint, request
 
@@ -26,12 +28,14 @@ class Submissions(db.Model):
         self.problem_id = problem_id
         self.lang = lang
         self.uuid = uuid.uuid4().hex
+        log.info('Judging Submission '+self.uuid)
         work_dir = os.path.join(config.JUDGE_BASEDIR, self.uuid)
         os.mkdir(work_dir)
 
         self.worker = Worker(work_dir, code, lang, problem_id)
         comp = self.compile()
         if not comp['result']:
+            log.error('Compile Error for Submission '+self.uuid)
             result = {
                 'result': RESULT_COMPILE_ERROR,
                 'message': 'Compile Error',
@@ -42,8 +46,11 @@ class Submissions(db.Model):
         else:
             result = self.judge()
         self.result = json.dumps(result)
+        log.info(f'Final Result for Submission {self.uuid}:\n{self.result}')
+        self.worker.destroy()
 
     def compile(self):
+        log.info('Compiling: ')
         result = True
         message = ''
         source_path, output_path = '', ''
@@ -77,7 +84,7 @@ class Submissions(db.Model):
             }
 
 
-@judge.route('/', methods=['POST'])
+@judge.route('', methods=['POST'])
 @utils.api_call
 def submit():
     whitelist = ['problem_id', 'code', 'lang']
@@ -92,7 +99,6 @@ def submit():
         r['lang'],
         r['code'],
     )
-    submission.worker.destroy()
     db.session.add(submission)
     db.session.commit()
     return 200, 'success', json.loads(submission.result)

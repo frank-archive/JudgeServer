@@ -1,4 +1,6 @@
 import json
+import logging
+log = logging.getLogger('problem')
 
 from flask import Blueprint, request
 
@@ -51,9 +53,11 @@ def add_problem():
 
     try:
         prob = Problems(r['limits'], r['cases'])
+        log.info(f'adding problem {prob.id} to database...')
         db.session.add(prob)
         db.session.commit()
     except Exception as e:
+        log.error('failed adding problem')
         return 501, 'SQL execution error', str(e)
 
     return 200, 'success', {
@@ -74,6 +78,7 @@ def update(prob_id, column):
         try:
             check_cases_fmt(r)
         except Exception:
+            log.error('wrong updating parameters(limits)')
             return 403, 'wrong parameters', None
         prob.cases = json.dumps(r)
         prob.case_cnt = len(r)
@@ -81,6 +86,7 @@ def update(prob_id, column):
         try:
             check_limits_fmt(r)
         except Exception:
+            log.error('wrong updating parameters(cases)')
             return 403, 'wrong parameters', None
         prob.limits = json.dumps(r)
     db.session.add(prob)
