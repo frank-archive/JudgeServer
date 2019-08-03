@@ -102,4 +102,4 @@ def submit():
     )
     db.session.add(submission)
     db.session.commit()
-    return 200, 'success', json.loads(submission.return_res)
+    return 200, 'success', submission.return_res
