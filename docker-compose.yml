@@ -10,6 +10,13 @@ services:
       - DATABASE_URL=mysql+pymysql://root:judge@db/judge?charset=utf8mb4
       - JUDGE_BASEDIR=/opt/base
       - JUDGE_TOKEN=set_token
+
+      - HOST_ADDR=CTFd_address
+      - HOST_PORT=8000
+      - HOST_USER=admin
+      - HOST_PASS=admin
+    volumes:
+      - .data/judger:/opt/base/data
     depends_on:
       - db
     networks:

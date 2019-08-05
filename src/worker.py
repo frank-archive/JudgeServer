@@ -93,7 +93,7 @@ class Worker:
             source_path=self.source_path,
             output_path=self.output_path,
             output_dir=self.work_dir,
-            max_memory=limits["max_memory"]//1024,
+            max_memory=limits["max_memory"] // 1024,
         ).split(' ')
         weight = self.config['execute']['weight']
         assert (type(weight) == dict)
@@ -105,10 +105,6 @@ class Worker:
                     limits[key] *= weight[key]
         res = []
         for i in range(problem.case_cnt):
-            with open(os.path.join(self.work_dir, 'input'), 'w') as f:
-                f.write(cases[i]['input'])
-            with open(os.path.join(self.work_dir, 'output'), 'w') as f:
-                f.write(cases[i]['output'])
             res.append(_judger.run(
                 max_cpu_time=limits["max_cpu_time"],
                 max_real_time=limits["max_real_time"],
@@ -117,7 +113,7 @@ class Worker:
                 max_output_size=limits["max_output_size"],
                 max_process_number=limits["max_process_number"],
                 exe_path=command[0],
-                input_path=os.path.join(self.work_dir, 'input'),
+                input_path=cases[i]['input'],
                 output_path=os.path.join(self.work_dir, 'program_output'),
                 error_path=os.path.join(self.work_dir, 'program_error_output'),
                 args=command[1::],
@@ -127,15 +123,20 @@ class Worker:
                 uid=0, gid=0
             ))
             if res[-1]['result'] == RESULT_SUCCESS:
-                with open(os.path.join(self.work_dir, 'program_output'), 'r') as f:
-                    res[-1]['result'] = self.compare_output(
-                        f.read(), cases[i]['output'])
+                res[-1]['result'] = Worker.compare_output(
+                    os.path.join(self.work_dir, 'program_output'),
+                    cases[i]['output']
+                )
             if res[-1]['result'] != RESULT_SUCCESS:
                 break
         return res, problem.case_cnt
 
     @staticmethod
     def compare_output(got_output, output):
+        with open(got_output, 'r') as f:
+            got_output = f.read()
+        with open(output, 'r') as f:
+            output = f.read()
         output = output.strip(' \n')
         got_output = got_output.strip(' \n')
         result = RESULT_SUCCESS

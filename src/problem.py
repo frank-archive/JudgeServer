@@ -1,13 +1,16 @@
 import json
 import logging
-log = logging.getLogger('problem')
+import os
+import uuid
 
 from flask import Blueprint, request
 
+import config
 import utils
 from db import db
 
 problem = Blueprint('problem', __name__, url_prefix='/problem')
+log = logging.getLogger('problem')
 
 
 class Problems(db.Model):
@@ -15,25 +18,47 @@ class Problems(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     limits = db.Column(db.Text)
     case_cnt = db.Column(db.Integer)
-    cases = db.Column(db.Text(16777216))
+    cases = db.Column(db.Text)
+    uuid = db.Column(db.VARCHAR(50))
 
     def __init__(self, limits: dict, cases: list):
         self.limits = json.dumps(limits)
-        self.case_cnt = len(cases)
-        self.cases = json.dumps(cases)
+        self.case_cnt = 0
+        self.cases = "[]"
+        self.uuid = uuid.uuid4().hex
+        data_dir = os.path.join(config.JUDGE_DATADIR, self.uuid)
+        os.mkdir(data_dir)
+        os.mkdir(os.path.join(data_dir, 'input'))
+        os.mkdir(os.path.join(data_dir, 'output'))
+        self.add_cases(cases)
+
+    def add_cases(self, cases):
+        data_dir = os.path.join(config.JUDGE_DATADIR, self.uuid)
+        cases_temp = []
+        for i in range(len(cases)):
+            for t in ["input", "output"]:
+                utils.download_file(
+                    cases[i][t], os.path.join(data_dir, t), str(i + self.case_cnt)
+                )
+            cases_temp.append({
+                'input': os.path.join(data_dir, 'input', str(i + self.case_cnt)),
+                'output': os.path.join(data_dir, 'output', str(i + self.case_cnt))
+            })
+        self.cases = json.dumps(json.loads(self.cases) + cases_temp)
+        self.case_cnt += len(cases)
 
 
 def check_limits_fmt(l):
     for i in ['max_cpu_time', 'max_memory', 'max_output_size',
               'max_real_time', 'max_stack', 'max_process_number']:
         if i not in l.keys():
-            raise Exception()
+            raise ValueError()
 
 
 def check_cases_fmt(c):
     for i in c:
         if type(i['input']) != str or type(i['output']) != str:
-            raise Exception()
+            raise ValueError()
 
 
 @problem.route('/add', methods=['POST'])
@@ -50,7 +75,6 @@ def add_problem():
         check_cases_fmt(r['cases'])
     except Exception:
         return 403, 'wrong parameters', None
-
     try:
         prob = Problems(r['limits'], r['cases'])
         log.info(f'adding problem {prob.id} to database...')
@@ -61,37 +85,48 @@ def add_problem():
         return 501, 'SQL execution error', str(e)
 
     return 200, 'success', {
-        'problem_id': prob.id
+        'problem_id': prob.id,
+        'problem_cases': prob.case_cnt,
     }
 
 
-@problem.route('/update/<int:prob_id>/<column>', methods=['POST'])
+@problem.route('/update/<column>/<int:prob_id>', methods=['POST'])
 @utils.api_call
-def update(prob_id, column):
-    if column not in ['cases', 'limits']:
-        return 404, 'no such column', None
-    r = request.json
+def update(column, prob_id: int):
     prob = Problems.query.filter_by(id=prob_id).first()
     if not prob:
-        return 404, 'no such problem'
-    if column == 'cases':
-        try:
-            check_cases_fmt(r)
-        except Exception:
-            log.error('wrong updating parameters(limits)')
-            return 403, 'wrong parameters', None
-        prob.cases = json.dumps(r)
-        prob.case_cnt = len(r)
-    else:
-        try:
+        return 404, 'no such problem', None
+    try:
+        r = request.json
+        if column == 'limits':
             check_limits_fmt(r)
-        except Exception:
-            log.error('wrong updating parameters(cases)')
-            return 403, 'wrong parameters', None
-        prob.limits = json.dumps(r)
+            update_limits(r, prob)
+        elif column == 'cases':
+            check_cases_fmt(r)
+            update_cases(r, prob)
+        else:
+            raise ValueError()
+    except ValueError:
+        log.error(f'wrong updating parameters({column})')
+        log.error(request.data)
+        return 403, 'wrong parameters', None
+    except Exception as e:
+        log.error(f'Unknown error when updating {column}')
+        log.error(str(e) + str(type(e)))
+        return 500, 'Internal Error', None
+    return 200, 'success', None
+
+
+def update_limits(r, prob):
+    prob.limits = json.dumps(r)
     db.session.add(prob)
     db.session.commit()
-    return 200, 'success', None
+
+
+def update_cases(r, prob):
+    prob.add_cases(r)
+    db.session.add(prob)
+    db.session.commit()
 
 
 @problem.route('/info/<int:prob_id>')
@@ -100,7 +135,8 @@ def problem_info(prob_id: int):
     prob = Problems.query.filter_by(id=prob_id).first()
     data = {
         'id': prob_id,
-        'exists': prob is not None
+        'exists': prob is not None,
+        'uuid': prob.uuid,
     }
     if data['exists']:
         data.update({'case_cnt': prob.case_cnt})
