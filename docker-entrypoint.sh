@@ -7,6 +7,13 @@ ACCESS_LOG=${ACCESS_LOG:--}
 ERROR_LOG=${ERROR_LOG:--}
 WORKER_TEMP_DIR=${WORKER_TEMP_DIR:-/dev/shm}
 
+echo 'Waiting CTFd to fully start'
+while ! wget -qO- $HOST_ADDR:$HOST_PORT;do
+    echo -n '.'
+    sleep 1
+done
+echo 'CTFd started'
+
 # TODO: check if db is started
 echo 'starting judger'
 exec gunicorn 'app:app' \
