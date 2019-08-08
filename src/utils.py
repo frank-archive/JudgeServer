@@ -27,8 +27,6 @@ def startup():
     @ensure_logged_in
     def conn_test():
         assert (ses.get(f'http://{config.HOST_ADDR}:{config.HOST_PORT}/').status_code == 200)
-        assert (ses.get(f'http://{config.HOST_ADDR}:{config.HOST_PORT}/admin/statistics',
-                        allow_redirects=False).status_code == 200)
 
     conn_test()
 
