@@ -80,7 +80,7 @@ def download_file(route: str, folder, filename):
     if not os.path.isdir(folder):
         raise NotADirectoryError
     path = os.path.join(folder, filename)
-    content = ses.get(f'http://{config.HOST_ADDR}:{config.HOST_PORT}/{route.lstrip("/")}', stream=True)
+    content = ses.get(f'http://{config.HOST_ADDR}:{config.HOST_PORT}/files/{route.lstrip("/")}', stream=True)
     with open(path, 'wb') as f:
         for chunk in content.iter_content(1024):
             f.write(chunk)
