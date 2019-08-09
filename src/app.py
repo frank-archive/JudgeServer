@@ -9,11 +9,11 @@ from judge import judge
 from problem import problem
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = config.DATABASE_URL
 app.register_blueprint(problem)
 app.register_blueprint(judge)
 logging.basicConfig(level=logging.INFO)
-utils.startup()
 with app.app_context():
     db.init_app(app)
 
