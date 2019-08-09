@@ -8,7 +8,7 @@ ERROR_LOG=${ERROR_LOG:--}
 WORKER_TEMP_DIR=${WORKER_TEMP_DIR:-/dev/shm}
 
 echo 'Waiting CTFd to fully start'
-while ! wget -qO- $HOST_ADDR:$HOST_PORT;do
+while ! wget -qO- $HOST_ADDR:$HOST_PORT >/dev/null 2>&1;do
     echo -n '.'
     sleep 1
 done
