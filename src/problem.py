@@ -66,9 +66,9 @@ def add_problem():
         return 403, 'wrong parameters', None
     try:
         prob = Problems(r['limits'], r['cases'])
-        log.info(f'adding problem {prob.id} to database...')
         db.session.add(prob)
         db.session.commit()
+        log.info(f'added problem {prob.id} to database...')
     except Exception as e:
         log.error('failed adding problem')
         return 501, 'SQL execution error', str(e)
