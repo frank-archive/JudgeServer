@@ -36,6 +36,7 @@ class Submissions(db.Model):
         comp = self.compile()
         if not comp['result']:
             log.error('Compile Error for Submission '+self.uuid)
+            self.result = 'Compile Error: '+comp['result']
             result = {
                 'result': RESULT_COMPILE_ERROR,
                 'message': 'Compile Error',
