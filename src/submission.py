@@ -13,10 +13,12 @@ def list_submissions():
     ).all()
     return 200, 'OK', [i.uuid for i in submissions]
 
-@submission.route('<cuuid>')
+@submission.route('<uuid>')
 @utils.api_call
 def submission_detail(uuid):
     submission = judge.Submissions.query.filter_by(uuid=uuid).first()
+    if submission is None:
+        return 404, '', {}
     return 200, 'OK', {
         'problem_id': submission.problem_id,
         'lang': submission.lang,
