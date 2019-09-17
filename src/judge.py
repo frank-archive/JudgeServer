@@ -29,7 +29,7 @@ class Submissions(db.Model):
         self.lang = lang
         self.uuid = uuid.uuid4().hex
         log.info('Judging Submission '+self.uuid)
-        work_dir = os.path.join(config.JUDGE_RUNDIR, self.uuid)
+        work_dir = os.path.join(config.JUDGE_BASEDIR, self.uuid)
         os.mkdir(work_dir)
 
         self.worker = Worker(work_dir, code, lang, problem_id)
