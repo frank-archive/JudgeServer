@@ -13,7 +13,7 @@ def list_submissions():
     ).all()
     return 200, 'OK', [i.uuid for i in submissions]
 
-@submission.route('<str:uuid>')
+@submission.route('<cuuid>')
 @utils.api_call
 def submission_detail(uuid):
     submission = judge.Submissions.query.filter_by(uuid=uuid).first()
