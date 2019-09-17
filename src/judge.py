@@ -45,6 +45,7 @@ class Submissions(db.Model):
             }
         else:
             result = self.judge()
+        result['submission_id'] = self.uuid
         self.return_res = result
         self.worker.destroy()
 
