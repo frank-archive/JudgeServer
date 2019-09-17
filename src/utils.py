@@ -1,34 +1,11 @@
 import functools
 import json
 import os
-import re
 import traceback
 
-import requests
 from flask import request
 
 import config
-
-ses = requests.session()
-nonce_matcher = re.compile(r'<input type="hidden" name="nonce" value="(.*)">')
-
-
-def startup():
-    def trymkdir(d):
-        try:
-            os.mkdir(d)
-        except FileExistsError:
-            pass
-
-    trymkdir(config.JUDGE_BASEDIR)
-    trymkdir(config.JUDGE_DATADIR)
-    trymkdir(config.JUDGE_RUNDIR)
-
-    @ensure_logged_in
-    def conn_test():
-        assert (ses.get(f'http://{config.HOST_ADDR}:{config.HOST_PORT}/').status_code == 200)
-
-    conn_test()
 
 
 def api_call(func):
@@ -56,7 +33,6 @@ def api_call(func):
             return json.dumps(result), result['status'], {'Content-Type': 'application/json;'}
 
     return _api_response
-
 
 def ensure_logged_in(func):  # to CTFd
     @functools.wraps(func)

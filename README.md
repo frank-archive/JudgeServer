@@ -1,7 +1,10 @@
 # CTFd::JudgeServer
 
 本项目是[为MSSCTF修改的CTFd](https://github.com/frankli0324/CTFd)的附属项目
-用于评测ACM题目
+用于评测ACM题目  
+此分支(local_file)用于与CTFd一同启动。  
+由于master分支需要从CTFd将评测数据下载到JudgeServer，有点慢，所以干脆把CTFd的upload目录也映射到JudgeServer的container里头来，直接读取就行了。  
+注意docker-compose.yml的不同
 
 ## 说明
 
@@ -52,7 +55,8 @@
 docker run -p {port}:5000 frankli0324/judge_server \
     --env JUDGE_BASEDIR=/opt/judger \
     --env JUDGE_TOKEN=your_token \
-    --env DATABASE_URL=mysql+pymysql://username:password@$DB_URL/judge
+    --env DATABASE_URL=mysql+pymysql://username:password@$DB_URL/judge \
+    -v {CTFd文件上传目录，默认是.data/CTFd/upload}:/opt/data
 ```
 
 与魔改CTFd一同通过docker-compose启动:
@@ -70,6 +74,8 @@ services:
       - JUDGE_BASEDIR=/opt/judger
       - JUDGE_TOKEN=your_token
       - DATABASE_URL=mysql+pymysql://username:password@db/judge
+  volumes:
+    - .data/CTFd/uploads:/opt/data # IMPORTANT!!
   db: 
     image: mariadb
     ...

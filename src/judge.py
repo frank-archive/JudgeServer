@@ -29,13 +29,14 @@ class Submissions(db.Model):
         self.lang = lang
         self.uuid = uuid.uuid4().hex
         log.info('Judging Submission '+self.uuid)
-        work_dir = os.path.join(config.JUDGE_RUNDIR, self.uuid)
+        work_dir = os.path.join(config.JUDGE_BASEDIR, self.uuid)
         os.mkdir(work_dir)
 
         self.worker = Worker(work_dir, code, lang, problem_id)
         comp = self.compile()
         if not comp['result']:
             log.error('Compile Error for Submission '+self.uuid)
+            self.result = 'Compile Error: '+comp['message']
             result = {
                 'result': RESULT_COMPILE_ERROR,
                 'message': 'Compile Error',
@@ -45,6 +46,7 @@ class Submissions(db.Model):
             }
         else:
             result = self.judge()
+        result['submission_id'] = self.uuid
         self.return_res = result
         self.worker.destroy()
 

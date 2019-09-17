@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import uuid
 
 from flask import Blueprint, request
 
@@ -19,30 +18,20 @@ class Problems(db.Model):
     limits = db.Column(db.Text)
     case_cnt = db.Column(db.Integer)
     cases = db.Column(db.Text)
-    uuid = db.Column(db.VARCHAR(50))
 
     def __init__(self, limits: dict, cases: list):
         self.limits = json.dumps(limits)
         self.case_cnt = 0
         self.cases = "[]"
-        self.uuid = uuid.uuid4().hex
-        data_dir = os.path.join(config.JUDGE_DATADIR, self.uuid)
-        os.mkdir(data_dir)
-        os.mkdir(os.path.join(data_dir, 'input'))
-        os.mkdir(os.path.join(data_dir, 'output'))
         self.add_cases(cases)
 
     def add_cases(self, cases):
-        data_dir = os.path.join(config.JUDGE_DATADIR, self.uuid)
+        data_dir = config.JUDGE_DATADIR
         cases_temp = []
         for i in range(len(cases)):
-            for t in ["input", "output"]:
-                utils.download_file(
-                    cases[i][t], os.path.join(data_dir, t), str(i + self.case_cnt)
-                )
             cases_temp.append({
-                'input': os.path.join(data_dir, 'input', str(i + self.case_cnt)),
-                'output': os.path.join(data_dir, 'output', str(i + self.case_cnt))
+                'input': os.path.join(data_dir, cases[i]['input']),
+                'output': os.path.join(data_dir, cases[i]['output'])
             })
         self.cases = json.dumps(json.loads(self.cases) + cases_temp)
         self.case_cnt += len(cases)
@@ -77,9 +66,9 @@ def add_problem():
         return 403, 'wrong parameters', None
     try:
         prob = Problems(r['limits'], r['cases'])
-        log.info(f'adding problem {prob.id} to database...')
         db.session.add(prob)
         db.session.commit()
+        log.info(f'added problem {prob.id} to database...')
     except Exception as e:
         log.error('failed adding problem')
         return 501, 'SQL execution error', str(e)
@@ -136,7 +125,6 @@ def problem_info(prob_id: int):
     data = {
         'id': prob_id,
         'exists': prob is not None,
-        'uuid': prob.uuid,
     }
     if data['exists']:
         data.update({'case_cnt': prob.case_cnt})
